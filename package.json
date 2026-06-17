@@ -1,0 +1,10 @@
+{
+  "name": "study-mode",
+  "version": "0.1.0",
+  "description": "Strict tutor mode for Claude Code — teaches one concept at a time, verifies understanding, and hard-blocks Claude from writing your code.",
+  "private": true,
+  "scripts": {
+    "test": "node test/guard.test.js"
+  },
+  "license": "MIT"
+}

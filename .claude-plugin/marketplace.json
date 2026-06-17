@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "study-mode",
+  "description": "Strict tutor mode for Claude Code. Teaches one concept at a time, verifies understanding, and hard-blocks Claude from writing your code.",
+  "owner": {
+    "name": "Prakhar Khatri"
+  },
+  "plugins": [
+    {
+      "name": "study-mode",
+      "description": "Turn Claude into a strict teacher: paces concepts, quizzes you, reviews your code, and refuses to write code for you.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
