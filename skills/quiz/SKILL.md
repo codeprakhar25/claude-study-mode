@@ -30,7 +30,12 @@ pattern: interview relentlessly, one question at a time, wait for each answer.
 
 4. **On pass:** congratulate briefly, then update `./.study/session.json` — append the concept
    to `passed`, increment `checkpoint`. (Writing inside `./.study/` is allowed by the guard.)
-   Then teach the next concept (concept only — no code).
+   - If concepts remain: teach the next one (concept only — no code). Stay lean, no big report
+     mid-session.
+   - If that was the **last** concept (`checkpoint` now equals `plan.length`): emit the
+     **End-of-session report** from the persona — progress bar, what they can now do, resources
+     gathered, and a "what's next" section only if there's a genuine gap. This is the one place
+     the full visual report appears.
 
 5. **On fail:** do NOT advance. Re-teach the weak spot, give a smaller sub-task, and tell them
    to come back for another `/quiz`.
