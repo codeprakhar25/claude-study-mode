@@ -92,17 +92,6 @@ pull up canonical docs.
 - **Per-project session:** `./.study/session.json` — `{topic, plan, checkpoint, passed}`. This
   is the only place Claude is allowed to write while the mode is on.
 
-## Development
-
-```bash
-node test/guard.test.js   # 13 hook smoke tests (isolated config + cwd, touches no real state)
-```
-
-## Contributing
-
-Issues and PRs welcome. The behavior lives in `src/persona/strict-tutor.md` (the teacher) and
-the three hooks in `src/hooks/`.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
