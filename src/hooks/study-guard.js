@@ -6,7 +6,7 @@
 // tutor can still review the learner's code and gather resources.
 
 const path = require('path');
-const { readState, sessionDir } = require('../lib/state');
+const { readState, sessionDir, studyDir } = require('../lib/state');
 
 function denyReason(level) {
   const base =
@@ -45,11 +45,13 @@ process.stdin.on('end', () => {
   const ti = data.tool_input || {};
   const target = ti.file_path || ti.notebook_path || ti.path || '';
 
-  // Allow writes confined to the session/notes dir.
+  // Allow writes confined to study storage: the central dir (session + ledger)
+  // or the legacy <cwd>/.study dir (migration window). Everything else denied.
   if (target) {
     const abs = path.resolve(cwd, target);
-    const allowed = path.resolve(sessionDir(cwd)) + path.sep;
-    if (abs === path.resolve(sessionDir(cwd)) || abs.startsWith(allowed)) {
+    const allowedDirs = [path.resolve(studyDir()), path.resolve(sessionDir(cwd))];
+    const ok = allowedDirs.some((d) => abs === d || abs.startsWith(d + path.sep));
+    if (ok) {
       process.stdout.write('OK');
       process.exit(0);
     }

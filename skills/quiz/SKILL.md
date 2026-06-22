@@ -17,7 +17,8 @@ pattern: interview relentlessly, one question at a time, wait for each answer.
 
 ## Steps
 
-1. **Load the session.** Read `./.study/session.json`. The current concept is
+1. **Load the session.** Read the session file (its `session=` path is injected into your
+   context; it lives under `~/.claude/study/sessions/`). The current concept is
    `plan[checkpoint]`. If no session exists, tell them to run `/study <topic>` first.
 
 2. **Interrogate, one question at a time.** Ask probing questions about the current concept:
@@ -28,8 +29,15 @@ pattern: interview relentlessly, one question at a time, wait for each answer.
 3. **Judge honestly. Scold hand-waving.** Vague, copied, or "I think so" answers do NOT pass.
    Say so plainly and re-ask. A pass requires them demonstrating understanding, not asserting it.
 
-4. **On pass:** congratulate briefly, then update `./.study/session.json` — append the concept
-   to `passed`, increment `checkpoint`. (Writing inside `./.study/` is allowed by the guard.)
+4. **On pass:** congratulate briefly, then record it (both writes are inside the guard-allowed
+   study storage dir — use the paths from your context):
+   - **Update the session** (`session=` path): append the concept to `passed`, increment
+     `checkpoint`.
+   - **Append to the lifetime ledger** (`history=` path, `~/.claude/study/history.jsonl`): add
+     ONE line for the concept just passed —
+     `{"ts":"<ISO now>","topic":"<session topic>","concept":"<concept>","project":"<cwd>","level":"<level>"}`.
+     Append only; read it first and re-write all lines if you can't append directly, never drop
+     existing lines.
    - If concepts remain: teach the next one (concept only — no code). Stay lean, no big report
      mid-session.
    - If that was the **last** concept (`checkpoint` now equals `plan.length`): emit the

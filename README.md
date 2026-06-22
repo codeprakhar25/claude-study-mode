@@ -61,6 +61,7 @@ study off           # back to normal Claude
 
 /study learn Go     # start a learning session — builds a concept path, gathers resources
 /quiz               # prove you understand the current concept before moving on
+/progress           # on-demand diagram: current concept map + lifetime summary
 ```
 
 ### Levels
@@ -78,19 +79,29 @@ In both levels, **you** write all the code; Claude reads and critiques it but ne
 |-----------|------|
 | `SessionStart` hook (`study-activate.js`) | Injects the strict-tutor persona when the mode is active, so it survives restarts. |
 | `UserPromptSubmit` hook (`study-tracker.js`) | Parses `study on/off/strict/lite`; re-injects the tutor reminder each turn so it never drifts. |
-| `PreToolUse` hook (`study-guard.js`) | **The enforcement core** — denies `Write`/`Edit`/`NotebookEdit` while active (except inside `./.study/`). |
+| `PreToolUse` hook (`study-guard.js`) | **The enforcement core** — denies `Write`/`Edit`/`NotebookEdit` while active (except inside the central `~/.claude/study/` dir). |
 | `/study` skill | Assesses your level, builds an ordered concept path, gathers real resources, teaches concept 0, sets a checkpoint. |
-| `/quiz` skill | Grills you on the current checkpoint; advances only on a genuine pass. On the final pass, emits a visual end-of-session report. |
+| `/quiz` skill | Grills you on the current checkpoint; advances only on a genuine pass. On a pass it records the concept to the lifetime ledger; on the final pass, emits a visual end-of-session report. |
+| `/progress` skill | On-demand diagram (read-only): the current topic's concept map plus a lifetime summary of every concept you've passed across all projects. |
 
 `Read` / `Grep` / `Glob` / `WebSearch` are never blocked — so Claude can review your code and
 pull up canonical docs.
 
 ### State
 
+All study state lives **centrally** under `$CLAUDE_CONFIG_DIR` — nothing is written into your
+repos, so there's no `.study/` dir to gitignore.
+
 - **Global toggle:** `$CLAUDE_CONFIG_DIR/.study-state.json` (`{active, level}`) plus a hardened
   `.study-active` sidecar the statusline reads.
-- **Per-project session:** `./.study/session.json` — `{topic, plan, checkpoint, passed}`. This
-  is the only place Claude is allowed to write while the mode is on.
+- **Per-project session:** `$CLAUDE_CONFIG_DIR/study/sessions/<slug>.json` —
+  `{topic, plan, checkpoint, passed, cwd}`, keyed by project path.
+- **Lifetime ledger:** `$CLAUDE_CONFIG_DIR/study/history.jsonl` — append-only, one line per
+  concept you pass, across every project. This is what `/progress` summarizes. Honest record
+  only — concepts, topics, dates; no streaks or XP.
+
+While the mode is on, the central `study/` dir is the **only** place Claude may write (a legacy
+`./.study/` is still accepted so older sessions keep resuming). Everything else is denied.
 
 ## License
 

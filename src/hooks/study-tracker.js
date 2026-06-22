@@ -5,7 +5,7 @@
 //   2. While active, re-inject a short tutor reminder so the persona survives
 //      long sessions / context drift.
 
-const { readState, writeState, readSession } = require('../lib/state');
+const { readState, writeState, readSession, sessionPath, historyPath } = require('../lib/state');
 
 const REMINDER =
   'STUDY MODE reminder: you are a strict tutor. Do NOT write code for the user (writing tools ' +
@@ -48,7 +48,9 @@ process.stdin.on('end', () => {
 
   if (changed) {
     if (state.active) {
-      let msg = '[study-mode] Activated (level: ' + state.level + '). ' + REMINDER;
+      let msg = '[study-mode] Activated (level: ' + state.level + '). ' + REMINDER +
+        ' Write session/ledger only here: session=' + sessionPath(process.cwd()) +
+        ' ; history=' + historyPath() + '.';
       const s = readSession(process.cwd());
       if (s) {
         const cur = s.plan && s.plan[s.checkpoint];

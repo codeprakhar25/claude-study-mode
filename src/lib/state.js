@@ -10,12 +10,41 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 
 const VALID_LEVELS = ['strict', 'lite'];
 const DEFAULT_STATE = { active: false, level: 'strict' };
 
 function claudeDir() {
   return process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
+}
+
+// Central study storage (cross-project). Lives under the global config dir so it
+// is shared by every project and never dirties a repo.
+//   study/history.jsonl        append-only lifetime ledger (one line per concept)
+//   study/sessions/<slug>.json per-project session, keyed by cwd
+function studyDir() {
+  return path.join(claudeDir(), 'study');
+}
+
+function sessionsDir() {
+  return path.join(studyDir(), 'sessions');
+}
+
+function historyPath() {
+  return path.join(studyDir(), 'history.jsonl');
+}
+
+// Readable + collision-free filename for a project path.
+function slugForCwd(cwd) {
+  const dir = cwd || process.cwd();
+  const base = path.basename(dir).replace(/[^a-zA-Z0-9._-]/g, '-') || 'root';
+  const hash = crypto.createHash('sha1').update(dir).digest('hex').slice(0, 8);
+  return base + '-' + hash;
+}
+
+function sessionPath(cwd) {
+  return path.join(sessionsDir(), slugForCwd(cwd) + '.json');
 }
 
 function globalStatePath() {
@@ -66,18 +95,50 @@ function writeState(next) {
   return merged;
 }
 
-// Per-project session — read-only helper used by hooks for the persona reminder.
+// Legacy per-project session dir (<cwd>/.study). Kept for backward-compat reads
+// and the guard's migration-window write exception.
 function sessionDir(cwd) {
   return path.join(cwd || process.cwd(), '.study');
 }
 
+// Read the session for a cwd: central first, then the legacy local file so an
+// in-flight v0.1 session keeps resuming (next pass rewrites it centrally).
 function readSession(cwd) {
   try {
-    const raw = fs.readFileSync(path.join(sessionDir(cwd), 'session.json'), 'utf8');
-    return JSON.parse(raw);
-  } catch (e) {
-    return null;
-  }
+    return JSON.parse(fs.readFileSync(sessionPath(cwd), 'utf8'));
+  } catch (e) {}
+  try {
+    return JSON.parse(fs.readFileSync(path.join(sessionDir(cwd), 'session.json'), 'utf8'));
+  } catch (e) {}
+  return null;
+}
+
+// Atomically write the central session for a cwd (temp + rename).
+function writeSession(cwd, data) {
+  const target = sessionPath(cwd);
+  const tmp = target + '.tmp-' + process.pid;
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+  fs.renameSync(tmp, target);
+  return target;
+}
+
+// Append one concept-passed record to the lifetime ledger.
+function appendHistory(entry) {
+  fs.mkdirSync(studyDir(), { recursive: true });
+  fs.appendFileSync(historyPath(), JSON.stringify(entry) + '\n');
+}
+
+// Parse the ledger into objects, skipping any malformed lines.
+function readHistory() {
+  let raw = '';
+  try { raw = fs.readFileSync(historyPath(), 'utf8'); } catch (e) { return []; }
+  return raw.split('\n').reduce((acc, line) => {
+    line = line.trim();
+    if (!line) return acc;
+    try { acc.push(JSON.parse(line)); } catch (e) {}
+    return acc;
+  }, []);
 }
 
 module.exports = {
@@ -87,6 +148,14 @@ module.exports = {
   flagPath,
   readState,
   writeState,
+  studyDir,
+  sessionsDir,
+  historyPath,
+  slugForCwd,
+  sessionPath,
   sessionDir,
   readSession,
+  writeSession,
+  appendHistory,
+  readHistory,
 };

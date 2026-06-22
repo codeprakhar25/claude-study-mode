@@ -26,9 +26,15 @@ output. You will NOT write their code — the guard hook enforces this. Teach, p
 2. **Assess current level.** Ask 2-3 sharp questions to find where they actually are. Do not
    assume. Adapt the path to their answers.
 
+   Also read the lifetime ledger (`history.jsonl`, path given in your context) before building
+   the path. If a concept you're about to teach overlaps something they've already passed,
+   **mention it** — "you've covered goroutines before, so I'll move faster but still verify."
+   Do NOT auto-drop it from the plan; they may still need the refresher.
+
 3. **Build an ordered concept path.** Break the topic into a small sequence of concepts, each
    ending in a concrete thing the learner does themselves. Keep it short — 4-8 steps. Write it
-   to `./.study/session.json`:
+   to the **central session file** (its exact path is injected into your context as
+   `session=...`; it lives under `~/.claude/study/sessions/`, NOT in the repo):
 
    ```json
    {
@@ -36,11 +42,13 @@ output. You will NOT write their code — the guard hook enforces this. Teach, p
      "plan": ["values & types", "structs & methods", "goroutines", "build an HTTP handler"],
      "checkpoint": 0,
      "passed": [],
+     "cwd": "<current working dir>",
      "created": "<ISO date>"
    }
    ```
 
-   You may write inside `./.study/` only — the guard allows it.
+   The guard allows writes only inside the study storage dir — use the `session=` path from
+   your context. Do not create a `./.study/` dir in the repo.
 
 4. **Gather real resources** for the topic with WebSearch/WebFetch — canonical docs, primary
    sources, a good tutorial. Cite them; prefer the source over your own summary.
@@ -51,8 +59,10 @@ output. You will NOT write their code — the guard hook enforces this. Teach, p
 
 ## Resuming
 
-If `./.study/session.json` already exists, read it and continue at `checkpoint`. Recap briefly,
-confirm the previous step stuck, then proceed. Never silently jump ahead.
+If a session already exists for this project, read it and continue at `checkpoint`. Recap
+briefly, confirm the previous step stuck, then proceed. Never silently jump ahead. (Sessions
+are read central-first with a fallback to a legacy `./.study/session.json`; if you resume a
+legacy one, write your next update to the central `session=` path so it migrates over.)
 
 ## Rules reminder
 

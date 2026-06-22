@@ -5,7 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { readState, readSession } = require('../lib/state');
+const { readState, readSession, sessionPath, historyPath } = require('../lib/state');
 
 function loadPersona() {
   try {
@@ -24,6 +24,11 @@ if (!state.active) {
 
 let out = loadPersona();
 out += '\n\nCurrent level: **' + state.level + '**.';
+
+// Central storage paths for this project — write the session/ledger HERE (the
+// guard allows writes only inside the study dir), never into the repo.
+out += '\n\nStudy storage (write only here): session=' + sessionPath(process.cwd()) +
+  ' ; history=' + historyPath() + '.';
 
 const session = readSession(process.cwd());
 if (session) {

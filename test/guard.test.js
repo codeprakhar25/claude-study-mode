@@ -41,9 +41,15 @@ check('study on -> tracker reports activated', /Activated/.test(r.json && r.json
 r = run('study-guard.js', { tool_name: 'Write', tool_input: { file_path: path.join(proj, 'main.go') }, cwd: proj });
 check('guard denies Write to main.go', r.json && r.json.hookSpecificOutput.permissionDecision === 'deny');
 
-// 3. guard: allows writes inside ./.study/
+// 3. guard: allows writes inside legacy ./.study/
 r = run('study-guard.js', { tool_name: 'Write', tool_input: { file_path: path.join(proj, '.study', 'session.json') }, cwd: proj });
-check('guard allows write inside .study/', r.raw.trim() === 'OK');
+check('guard allows write inside legacy .study/', r.raw.trim() === 'OK');
+
+// 3b. guard: allows writes inside the central study dir (session + ledger)
+r = run('study-guard.js', { tool_name: 'Write', tool_input: { file_path: path.join(cfg, 'study', 'sessions', 'proj-abc.json') }, cwd: proj });
+check('guard allows write inside central study dir', r.raw.trim() === 'OK');
+r = run('study-guard.js', { tool_name: 'Write', tool_input: { file_path: path.join(cfg, 'study', 'history.jsonl') }, cwd: proj });
+check('guard allows write to central history.jsonl', r.raw.trim() === 'OK');
 
 // 4. guard: relative path resolves against cwd and is still denied
 r = run('study-guard.js', { tool_name: 'Edit', tool_input: { file_path: 'src/app.js' }, cwd: proj });
@@ -83,6 +89,33 @@ sl = execFileSync('bash', [path.join(HOOKS, 'study-statusline.sh')], {
   encoding: 'utf8', env: { ...process.env, CLAUDE_CONFIG_DIR: cfg },
 });
 check('statusline empty when off', sl.trim() === '');
+
+// 10. state.js helpers — central storage round-trips
+const state = require(path.join(ROOT, 'src', 'lib', 'state'));
+process.env.CLAUDE_CONFIG_DIR = cfg;
+
+// slugForCwd: stable for same path, distinct for different paths
+check('slugForCwd stable', state.slugForCwd('/a/b/proj') === state.slugForCwd('/a/b/proj'));
+check('slugForCwd unique', state.slugForCwd('/a/b/proj') !== state.slugForCwd('/a/b/other'));
+
+// writeSession/readSession central round-trip
+const sess = { topic: 'learn Go', plan: ['types', 'structs'], checkpoint: 1, passed: ['types'], cwd: proj };
+const written = state.writeSession(proj, sess);
+check('writeSession lands in central sessions dir', written.startsWith(path.join(cfg, 'study', 'sessions')));
+check('readSession central round-trip', state.readSession(proj).checkpoint === 1);
+
+// readSession legacy fallback (different cwd with only a local .study/)
+const legacyProj = path.join(tmp, 'legacy');
+fs.mkdirSync(path.join(legacyProj, '.study'), { recursive: true });
+fs.writeFileSync(path.join(legacyProj, '.study', 'session.json'), JSON.stringify({ topic: 'old', checkpoint: 6 }));
+check('readSession legacy fallback', state.readSession(legacyProj).checkpoint === 6);
+
+// appendHistory/readHistory round-trip (append-only, skips malformed)
+state.appendHistory({ ts: '2026-06-22', topic: 'Go', concept: 'types', project: proj, level: 'strict' });
+state.appendHistory({ ts: '2026-06-22', topic: 'Go', concept: 'structs', project: proj, level: 'strict' });
+fs.appendFileSync(state.historyPath(), 'not json\n');
+const hist = state.readHistory();
+check('readHistory parses both records, skips malformed', hist.length === 2 && hist[1].concept === 'structs');
 
 fs.rmSync(tmp, { recursive: true, force: true });
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
