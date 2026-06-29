@@ -107,8 +107,15 @@ function readSession(cwd) {
   try {
     return JSON.parse(fs.readFileSync(sessionPath(cwd), 'utf8'));
   } catch (e) {}
+  // Legacy path — migrate to central on read.
+  const legacyPath = path.join(sessionDir(cwd), 'session.json');
   try {
-    return JSON.parse(fs.readFileSync(path.join(sessionDir(cwd), 'session.json'), 'utf8'));
+    const data = JSON.parse(fs.readFileSync(legacyPath, 'utf8'));
+    try {
+      writeSession(cwd, data);
+      fs.unlinkSync(legacyPath);
+    } catch (_) {}
+    return data;
   } catch (e) {}
   return null;
 }
