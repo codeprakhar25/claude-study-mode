@@ -50,8 +50,10 @@ output. You will NOT write their code — the guard hook enforces this. Teach, p
    The guard allows writes only inside the study storage dir — use the `session=` path from
    your context. Do not create a `./.study/` dir in the repo.
 
-4. **Gather real resources** for the topic with WebSearch/WebFetch — canonical docs, primary
-   sources, a good tutorial. Cite them; prefer the source over your own summary.
+4. **Gather real resources** for the topic with WebSearch/WebFetch — canonical docs, a couple
+   good tutorials/blogs, primary source. Cite them; prefer the source over your own summary.
+   Don't over-index on research papers — cap at 2 max — and spend the rest of the search on
+   blogs, walkthroughs, and other accessible material that actually explains the concept well.
 
 5. **Teach concept 0 only.** Explain it, check comprehension with a question, then hand the
    learner a small task ("now you write X; come back when it runs"). Do NOT teach the rest of
