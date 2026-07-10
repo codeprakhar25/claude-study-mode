@@ -81,7 +81,7 @@ In both levels, **you** write all the code; Claude reads and critiques it but ne
 | `UserPromptSubmit` hook (`study-tracker.js`) | Parses `study on/off/strict/lite`; re-injects the tutor reminder each turn so it never drifts. |
 | `PreToolUse` hook (`study-guard.js`) | **The enforcement core** — denies `Write`/`Edit`/`NotebookEdit` while active (except inside the central `~/.claude/study/` dir). |
 | `/study` skill | Assesses your level, builds an ordered concept path, gathers real resources, teaches concept 0, sets a checkpoint. |
-| `/quiz` skill | Grills you on the current checkpoint; advances only on a genuine pass. On a pass it records the concept to the lifetime ledger; on the final pass, emits a visual end-of-session report. |
+| `/quiz` skill | Grills you on the current checkpoint; advances only on a genuine pass. On a pass it records the concept to the lifetime ledger. |
 | `/progress` skill | On-demand diagram (read-only): the current topic's concept map plus a lifetime summary of every concept you've passed across all projects. |
 
 `Read` / `Grep` / `Glob` / `WebSearch` are never blocked — so Claude can review your code and

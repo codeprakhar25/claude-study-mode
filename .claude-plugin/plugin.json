@@ -1,6 +1,6 @@
 {
   "name": "study-mode",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Strict tutor mode. Turns Claude into a teacher that paces one concept at a time, verifies understanding, gathers resources, reviews YOUR code, and hard-blocks itself from writing code for you.",
   "author": {
     "name": "Prakhar Khatri"

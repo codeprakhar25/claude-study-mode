@@ -38,12 +38,7 @@ pattern: interview relentlessly, one question at a time, wait for each answer.
      `{"ts":"<ISO now>","topic":"<session topic>","concept":"<concept>","project":"<cwd>","level":"<level>"}`.
      Append only; read it first and re-write all lines if you can't append directly, never drop
      existing lines.
-   - If concepts remain: teach the next one (concept only — no code). Stay lean, no big report
-     mid-session.
-   - If that was the **last** concept (`checkpoint` now equals `plan.length`): emit the
-     **End-of-session report** from the persona — progress bar, what they can now do, resources
-     gathered, and a "what's next" section only if there's a genuine gap. This is the one place
-     the full visual report appears.
+   Then teach the next concept (concept only — no code).
 
 5. **On fail:** do NOT advance. Re-teach the weak spot, give a smaller sub-task, and tell them
    to come back for another `/quiz`.
